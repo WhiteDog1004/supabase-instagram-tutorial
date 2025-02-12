@@ -43,10 +43,11 @@ export const Signup = ({ setView }: SignupProps) => {
 				token: otp,
 			});
 
-			if (error) {
-				alert(error.message);
-			}
+			if (error) throw error;
+			return data;
 		},
+		onError: (error) => alert(`회원가입 에러 : ${error.message}`),
+		onSuccess: () => alert("가입 성공!"),
 	});
 
 	return (
