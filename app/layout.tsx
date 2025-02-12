@@ -1,6 +1,10 @@
+import AuthProvider from "@/auth/auth-provider";
 import ReactQueryClientProvider from "@/config/ReactQueryClientProvider";
 import { ThemeProvider } from "@/config/material-tailwind-theme-provider";
+import MainLayout from "@/layouts/MainLayout";
+import { createServerSupabaseClient } from "@/supabase/server";
 import type { Metadata } from "next";
+import { AuthClientPage } from "./_components/AuthClientPage";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -8,11 +12,17 @@ export const metadata: Metadata = {
 	description: "instagram clone",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
 	children,
 }: Readonly<{
 	children: React.ReactNode;
 }>) {
+	const supabase = await createServerSupabaseClient();
+
+	const {
+		data: { session },
+	} = await supabase.auth.getSession();
+
 	return (
 		<html lang="en">
 			<head>
@@ -25,9 +35,17 @@ export default function RootLayout({
 				/>
 			</head>
 			<body>
-				<ReactQueryClientProvider>
-					<ThemeProvider>{children}</ThemeProvider>
-				</ReactQueryClientProvider>
+				<AuthProvider accessToken={session?.access_token}>
+					<ReactQueryClientProvider>
+						<ThemeProvider>
+							{session?.user ? (
+								<MainLayout>{children}</MainLayout>
+							) : (
+								<AuthClientPage />
+							)}
+						</ThemeProvider>
+					</ReactQueryClientProvider>
+				</AuthProvider>
 			</body>
 		</html>
 	);
